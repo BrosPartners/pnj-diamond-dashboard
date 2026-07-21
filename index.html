@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PNJ Diamond Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+ body{font-family:system-ui,Arial;margin:0;padding:16px;background:#faf8f4;color:#222}
+ h1{font-size:20px} .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+ .card{background:#fff;border:1px solid #eadfce;border-radius:10px;padding:12px}
+ @media(max-width:800px){.grid{grid-template-columns:1fr}}
+ input,button{padding:6px;margin:4px 0} .note{color:#888;font-size:12px}
+ .kpis{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+ .kpi{background:#fff;border:1px solid #eadfce;border-radius:10px;padding:10px 14px;min-width:150px}
+ .kpi .v{font-size:22px;font-weight:700} .kpi .l{font-size:12px;color:#888}
+ .kpi.diamond .v{color:#c0392b} .kpi.all .v{color:#2c3e50}
+</style></head><body>
+ <h1>PNJ Diamond Inventory &amp; Velocity Tracker</h1>
+ <input id="sheetId" type="hidden">
+ <span id="updated" class="note"></span>
+ <div id="kpis" class="kpis"></div>
+ <div class="grid">
+   <div class="card"><canvas id="invValue"></canvas></div>
+   <div class="card"><canvas id="units"></canvas></div>
+   <div class="card"><canvas id="assortment"></canvas></div>
+   <div class="card"><canvas id="review"></canvas></div>
+   <div class="card"><canvas id="relindex"></canvas></div>
+   <div class="card"><canvas id="price"></canvas></div>
+ </div>
+ <h2 style="font-size:16px;margin:18px 0 4px">Pivot: hàm lượng vàng × loại trang sức × khoảng giá</h2>
+ <div class="controls" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+   <label>Ngành: <select id="bdSeg"></select></label>
+   <label>Nhóm theo: <select id="bdGroup">
+     <option value="karat">Hàm lượng vàng (K)</option>
+     <option value="type">Loại trang sức</option>
+     <option value="price">Khoảng giá</option>
+   </select></label>
+   <label>Tách theo: <select id="bdSplit">
+     <option value="none">— (không tách)</option>
+     <option value="price">Khoảng giá</option>
+     <option value="karat">Hàm lượng vàng (K)</option>
+     <option value="type">Loại trang sức</option>
+   </select></label>
+   <label>Đo: <select id="bdMetric">
+     <option value="total_value_vnd">Giá trị tồn (tỷ đ)</option>
+     <option value="total_units">Số lượng (units)</option>
+     <option value="n_skus">Số SKU</option>
+     <option value="median">Median giá (triệu đ)</option>
+   </select></label>
+ </div>
+ <div class="card" style="margin-top:10px"><canvas id="breakdown"></canvas></div>
+ <p class="note">Proxy từ dữ liệu web công khai PNJ. <code>amount</code> = tồn kho toàn hệ thống (không theo cửa hàng); Δ trộn bán/nhập/luân chuyển → tín hiệu cấp danh mục, không phải doanh số chính xác. Karat/loại parse từ tên sản phẩm.</p>
+ <script src="data/data.js"></script>
+ <script src="app.js"></script>
+</body></html>
