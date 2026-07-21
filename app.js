@@ -121,6 +121,7 @@ async function load(){
     else if(window.DEMO_BREAKDOWN){ bd = window.DEMO_BREAKDOWN; }
     window.__BD = bd;
     setupBreakdown(bd);
+    setupTypeSummary(bd);
   } catch(e){
     updated.textContent = 'Lỗi tải dữ liệu — kiểm tra Sheet ID và quyền chia sẻ (' + e.message + ')';
     console.error(e);
@@ -197,6 +198,69 @@ function renderBreakdown(){
     options:{indexAxis: gi==='type'?'y':'x',
       scales: stacked?{x:{stacked:true},y:{stacked:true}}:{},
       plugins:{title:{display:true,text:(LABEL[seg]||seg)+': '+mlbl+' theo '+DIM_LABEL[gi]+(si?(' × '+DIM_LABEL[si]):'')}}}});
+}
+
+// ---- Tổng hợp tồn kho theo loại trang sức (filter: ngành × loại × giá) ----
+const TYPE_ORDER = ["Nhẫn","Bông tai","Dây chuyền","Lắc","Kiềng","Mặt dây","Charm","Vàng miếng/đồng","Vòng","Khác"];
+function ordTypes(vals){
+  return [...vals].sort((a,b)=>((TYPE_ORDER.indexOf(a)+1||99)-(TYPE_ORDER.indexOf(b)+1||99)));
+}
+function checkedVals(boxId){
+  return [...document.querySelectorAll('#'+boxId+' input:checked')].map(i=>i.value);
+}
+function buildChipbox(boxId, values, checkedByDefault){
+  const box = document.getElementById(boxId); if(!box) return;
+  box.innerHTML = values.map(v=>
+    `<label><input type="checkbox" value="${v}" ${checkedByDefault(v)?'checked':''}>${LABEL[v]||v}</label>`
+  ).join('');
+}
+function wireAllNone(allBtnId, noneBtnId, boxId, rerender){
+  const allBtn=document.getElementById(allBtnId), noneBtn=document.getElementById(noneBtnId);
+  if(allBtn && !allBtn.__wired){ allBtn.addEventListener('click',()=>{
+    document.querySelectorAll('#'+boxId+' input').forEach(i=>i.checked=true); rerender(); }); allBtn.__wired=true; }
+  if(noneBtn && !noneBtn.__wired){ noneBtn.addEventListener('click',()=>{
+    document.querySelectorAll('#'+boxId+' input').forEach(i=>i.checked=false); rerender(); }); noneBtn.__wired=true; }
+}
+function setupTypeSummary(rows){
+  const segBox = document.getElementById('tsSegBox'); if(!segBox) return;
+  const cross = (rows||[]).filter(r=>r.dimension==='cross');
+  const latest = cross.length ? cross.map(r=>r.date).sort().at(-1) : null;
+  const latestRows = cross.filter(r=>r.date===latest).map(r=>({...r,_p:parseCross(r)}));
+  window.__TS = latestRows;
+
+  const segs = ["diamond","gold_jewelry","gold_24k"].filter(s=>latestRows.some(r=>r.segment===s));
+  buildChipbox('tsSegBox', segs, ()=>true);
+  const types = ordTypes(new Set(latestRows.map(r=>r._p.type)));
+  buildChipbox('tsTypeBox', types, ()=>true);
+  const prices = ordBuckets('price', new Set(latestRows.map(r=>r._p.price)));
+  buildChipbox('tsPriceBox', prices, ()=>true);
+
+  ['tsSegBox','tsTypeBox','tsPriceBox'].forEach(id=>{
+    document.querySelectorAll('#'+id+' input').forEach(i=>{
+      if(!i.__wired){ i.addEventListener('change', renderTypeSummary); i.__wired=true; }
+    });
+  });
+  const metricSel = document.getElementById('tsMetric');
+  if(metricSel && !metricSel.__wired){ metricSel.addEventListener('change', renderTypeSummary); metricSel.__wired=true; }
+  wireAllNone('tsPriceAll','tsPriceNone','tsPriceBox', renderTypeSummary);
+  wireAllNone('tsTypeAll','tsTypeNone','tsTypeBox', renderTypeSummary);
+  renderTypeSummary();
+}
+function renderTypeSummary(){
+  const rows = window.__TS || [];
+  const segs = checkedVals('tsSegBox');
+  const types = checkedVals('tsTypeBox');
+  const prices = checkedVals('tsPriceBox');
+  const metric = document.getElementById('tsMetric').value;
+  const mlbl = {total_value_vnd:'Giá trị tồn (tỷ đ)', total_units:'Số lượng', n_skus:'Số SKU'}[metric];
+  const f = rows.filter(r=>segs.includes(r.segment) && prices.includes(r._p.price));
+  const typeVals = ordTypes(new Set(f.map(r=>r._p.type))).filter(t=>types.includes(t));
+  const datasets = segs.map(s=>({label:LABEL[s]||s,
+    data:typeVals.map(t=>aggValue(f.filter(r=>r.segment===s && r._p.type===t), metric)),
+    backgroundColor:COLORS[s]||'#c0392b'}));
+  draw('typeSummary', {type:'bar', data:{labels:typeVals, datasets},
+    options:{indexAxis:'y', scales:{x:{stacked:true},y:{stacked:true}},
+      plugins:{title:{display:true,text:mlbl+' theo loại trang sức (lọc: ngành/loại/giá đã chọn)'}}}});
 }
 
 const _lb=document.getElementById('load'); if(_lb) _lb.addEventListener('click', load);

@@ -13,6 +13,13 @@
  .kpi{background:#fff;border:1px solid #eadfce;border-radius:10px;padding:10px 14px;min-width:150px}
  .kpi .v{font-size:22px;font-weight:700} .kpi .l{font-size:12px;color:#888}
  .kpi.diamond .v{color:#c0392b} .kpi.all .v{color:#2c3e50}
+ .chipbox{display:inline-flex;flex-wrap:wrap;gap:4px 8px;vertical-align:middle}
+ .chipbox label{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:normal;margin:0;padding:2px 6px;background:#fff;border:1px solid #eadfce;border-radius:6px;cursor:pointer}
+ .chipbox input{margin:0;padding:0}
+ .filterRow{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:flex-start;margin:6px 0}
+ .filterRow>div{display:flex;align-items:flex-start;gap:6px}
+ .filterRow .fl{font-size:12px;color:#666;white-space:nowrap;padding-top:3px}
+ .linkbtn{font-size:11px;color:#a04000;background:none;border:none;cursor:pointer;padding:0;margin-left:4px;text-decoration:underline}
 </style></head><body>
  <h1>PNJ Diamond Inventory &amp; Velocity Tracker</h1>
  <input id="sheetId" type="hidden">
@@ -26,6 +33,21 @@
    <div class="card"><canvas id="relindex"></canvas></div>
    <div class="card"><canvas id="price"></canvas></div>
  </div>
+ <h2 style="font-size:16px;margin:18px 0 4px">Tổng hợp tồn kho theo loại trang sức</h2>
+ <div class="filterRow">
+   <div><span class="fl">Ngành:</span> <span id="tsSegBox" class="chipbox"></span></div>
+   <div><span class="fl">Khoảng giá:</span> <span id="tsPriceBox" class="chipbox"></span> <button type="button" class="linkbtn" id="tsPriceAll">tất cả</button><button type="button" class="linkbtn" id="tsPriceNone">bỏ chọn</button></div>
+ </div>
+ <div class="filterRow">
+   <div><span class="fl">Loại sản phẩm:</span> <span id="tsTypeBox" class="chipbox"></span> <button type="button" class="linkbtn" id="tsTypeAll">tất cả</button><button type="button" class="linkbtn" id="tsTypeNone">bỏ chọn</button></div>
+   <label>Đo: <select id="tsMetric">
+     <option value="total_value_vnd">Giá trị tồn (tỷ đ)</option>
+     <option value="total_units">Số lượng (units)</option>
+     <option value="n_skus">Số SKU</option>
+   </select></label>
+ </div>
+ <div class="card"><canvas id="typeSummary"></canvas></div>
+
  <h2 style="font-size:16px;margin:18px 0 4px">Pivot: hàm lượng vàng × loại trang sức × khoảng giá</h2>
  <div class="controls" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
    <label>Ngành: <select id="bdSeg"></select></label>
